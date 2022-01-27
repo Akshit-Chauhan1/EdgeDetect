@@ -3,7 +3,7 @@
 int
 main(int argc, char *argv[])
 {
-	GstElement *pipeline, *source, *sink,*jpg_decoder,*freeze,*colorspace;
+	GstElement *pipeline, *source, *sink,*jpg_decoder, *edgedetect;
 	GstBus *bus;
 	GstMessage *msg;
 	GstStateChangeReturn ret;
@@ -12,25 +12,27 @@ main(int argc, char *argv[])
 	gst_init(&argc, &argv);
 
 	/* Create the elements */
-	source = gst_element_factory_make("filesrc", "filesrc1");
+	source = gst_element_factory_make("filesrc", "filesrc");
 	/* Modify the source's properties */
 	g_object_set(source, "location", "image1.jpeg", NULL);
-	jpg_decoder = gst_element_factory_make("jpegdec", "jpg-decoder");
-	freeze = gst_element_factory_make("imagefreeze", "freeze");
-	colorspace = gst_element_factory_make("ffmpegcolorspace", "colorspace");
-	GstElementFactory* F = gst_element_factory_find("ximagesink");
+
+	jpg_decoder = gst_element_factory_make("jpegdec", "jpg_decoder");
+
+	edgedetect = gst_element_factory_make("edgedetect", "edgedetect");
+
 	sink = gst_element_factory_make("ximagesink", "imagesink");
+
 	/* Create the empty pipeline */
 	pipeline = gst_pipeline_new("test-pipeline");
 
-	if (!pipeline || !source || !sink) {
+	if (!pipeline || !source || !jpg_decoder||!edgedetect|| !sink) {
 		g_printerr("Not all elements could be created.\n");
 		return -1;
 	}
 
 	/* Build the pipeline */
-	gst_bin_add_many(GST_BIN(pipeline), source, jpg_decoder, freeze, colorspace, sink, NULL);
-	if (gst_element_link_many(source, jpg_decoder, freeze, colorspace, sink) != TRUE) {
+	gst_bin_add_many(GST_BIN(pipeline), source, jpg_decoder, edgedetect, sink, NULL);
+	if (gst_element_link_many(source, jpg_decoder, edgedetect, sink) != TRUE) {
 		g_printerr("Elements could not be linked.\n");
 		gst_object_unref(pipeline);
 		return -1;
